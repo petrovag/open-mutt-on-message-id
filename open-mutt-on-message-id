@@ -1,0 +1,58 @@
+#!/bin/bash
+
+
+function findbox {
+	MUTT_HCACHE_DIR=${MUTT_HCACHE_DIR:-"${HOME}/.mutt/cache"}
+	if [ -d "$MUTT_HCACHE_DIR" ] ; then
+		for d in $(ls -t ${MUTT_HCACHE_DIR}); do
+			for f in $(find ${MUTT_HCACHE_DIR}/$d -name "*.hcache" -print); do
+				tcbmgr list -pv "$f" |grep -q "$id"
+				if [ $? -eq 0 ] ; then
+					echo $f
+					box=`expr  ${f%.hcache} : '.*\(imaps\?:.*\)'`
+					box=${box/:/:\/\/}
+					return 1
+				fi
+			done
+		done
+	fi
+	MBOX=${MBOX:-"/var/spool/mail/$USER"}
+	if [ -f $MBOX ] ; then
+		grep -q "Message-ID: $id" $f
+		if [ $? -eq 0 ] ; then
+			box=$f
+			return 2
+		fi
+	fi
+	MUTT_MBOX_DIR=${MUTT_MBOX_DIR:-"${HOME}/Mail"}
+	if [ -d $MUTT_MBOX_DIR ] ; then
+		for f in $(ls -t ${MUTT_MBOX_DIR}/*.bz2); do
+			bzgrep -q "Message-ID: $id"  $f
+			if [ $? -eq 0 ] ; then
+				box=$f
+				return 3
+			fi
+		done
+		for f in $(ls -t ${MUTT_MBOX_DIR}/*.gz); do
+			zgrep -q "Message-ID: $id"  $f
+			if [ $? -eq 0 ] ; then
+				box=$f
+				return 4
+			fi
+		done
+		for f in $(ls -t ${MUTT_MBOX_DIR}/*| egrep -v ".gz$|.bz2$"); do
+			grep -q "Message-ID: $id"  $f
+			if [ $? -eq 0 ] ; then
+				box=$f
+				return 5
+			fi
+		done
+	fi
+}
+
+id="$*"
+findbox
+echo "${box} is opening…"
+mutt -f "${box}" -F "$HOME/.config/mutt/preview.muttrc" -e "push l~i${id}\n<enter>"
+
+
