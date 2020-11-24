@@ -1,4 +1,4 @@
-#Open mutt on message with fixed Message-ID 
+# Open mutt on message with fixed Message-ID 
 
 This script attempt to find message with some Message-ID in network and local mailboxes and open mail with mutt. It use mutt  hcache (Tokio cabinet) for fast scan of the imap[s] folders.
 

@@ -50,9 +50,14 @@ function findbox {
 	fi
 }
 
+MUTT_CONFIG=""
 id="$*"
+if [ -f "${HOME}/.config/mutt/preview.muttrc" ] ; then
+	MUTT_CONFIG="-F ${HOME}/.config/mutt/preview.muttrc"
+fi
+
 findbox
 echo "${box} is opening…"
-mutt -f "${box}" -F "$HOME/.config/mutt/preview.muttrc" -e "push l~i${id}\n<enter>"
+mutt -f "${box}" $MUTT_CONFIG -e "push l~i${id}\n<enter>"
 
 
